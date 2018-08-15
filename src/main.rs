@@ -4,6 +4,7 @@
 
 use std::collections::HashSet;
 use std::fmt::{self, Display};
+use std::io::Write;
 
 /// Structure representing a candy bar to be chomped.
 struct Bar(HashSet<(u64, u64)>);
@@ -85,7 +86,43 @@ impl Display for Bar {
     }
 }
 
+fn get_move(b: &Bar) -> (u64, u64) {
+    loop {
+        println!("{}", b);
+        print!("move: ");
+        std::io::stdout().flush().unwrap();
+        let mut moove = String::new();
+        std::io::stdin().read_line(&mut moove).unwrap();
+        let fields: Vec<&str> = moove.split_whitespace().collect();
+        if fields.len() != 2 {
+            println!("bad move format");
+            continue;
+        }
+        let row: u64 = match fields[0].parse() {
+            Err(e) => { println!("{}", e); continue; },
+            Ok(v) => v,
+        };
+        let col: u64 = match fields[1].parse() {
+            Err(e) => { println!("{}", e); continue; },
+            Ok(v) => v,
+        };
+        if !b.contains(row, col) {
+            println!("illegal move");
+            continue;
+        }
+        return (row, col);
+    }
+}
+
 fn main() {
-    let b = Bar::new(4, 3);
-    print!("{}", b);
+    let mut b = Bar::new(4, 3);
+    loop {
+        let moove = get_move(&b);
+        if moove == (0, 0) {
+            println!("poisoned: game over");
+            return;
+        }
+        let (row, col) = moove;
+        b.chomp(row, col);
+    }
 }
