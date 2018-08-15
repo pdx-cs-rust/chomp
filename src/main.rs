@@ -24,6 +24,23 @@ impl Bar {
     fn contains(&self, row: u64, col: u64) -> bool {
         self.0.contains(&(row, col))
     }
+
+    /// Chomp at given position in a `Bar`, removing the
+    /// given square and everything below and to the right
+    /// of it.
+    fn chomp(&mut self, row0: u64, col0: u64) {
+        assert!(self.contains(row0, col0));
+        for row in row0.. {
+            if !self.contains(row, 0) {
+                return;
+            }
+            for col in col0.. {
+                if !self.0.remove(&(row, col)) {
+                    break;
+                }
+            }
+        }
+    }
 }
 
 #[test]
@@ -35,6 +52,16 @@ fn new_bar_ok() {
     assert!(b.0.len() == 20);
 }
 
+#[test]
+fn chomp_works() {
+    let mut b = Bar::new(4, 5);
+    assert!(b.contains(4, 3));
+    b.chomp(2, 2);
+    assert!(!b.contains(2, 2));
+    assert!(b.contains(1, 3));
+    assert!(b.contains(3, 1));
+}
+
 impl Display for Bar {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for row in 0.. {
@@ -43,7 +70,11 @@ impl Display for Bar {
             }
             for col in 0.. {
                 if self.contains(row, col) {
-                    write!(f, "*")?;
+                    if row == 0 && col == 0 {
+                        write!(f, "x")?;
+                    } else {
+                        write!(f, "o")?;
+                    }
                 } else {
                     break;
                 }
@@ -55,5 +86,6 @@ impl Display for Bar {
 }
 
 fn main() {
-    
+    let b = Bar::new(4, 3);
+    print!("{}", b);
 }
