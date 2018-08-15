@@ -118,10 +118,10 @@ fn get_move(b: &Bar) -> (u64, u64) {
 
 impl Bar {
     /// Return true iff the game is a win for the side on move.
-    fn negamax(&self) -> bool {
+    fn negamax(&self) -> Option<(u64, u64)> {
         // Base case: there is just poison.
         if self.0.len() == 1 {
-            return false;
+            return None;
         }
 
         // Recursive case: try to find a way to make
@@ -132,11 +132,11 @@ impl Bar {
             }
             let mut next = self.clone();
             next.chomp(row, col);
-            if !next.negamax() {
-                return true;
+            if next.negamax().is_none() {
+                return Some((row, col));
             }
         }
-        false
+        None
     }
 }
 
