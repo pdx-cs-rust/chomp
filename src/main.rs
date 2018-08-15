@@ -7,6 +7,7 @@ use std::fmt::{self, Display};
 use std::io::Write;
 
 /// Structure representing a candy bar to be chomped.
+#[derive(Clone, Debug)]
 struct Bar(HashSet<(u64, u64)>);
     
 impl Bar {
@@ -114,8 +115,34 @@ fn get_move(b: &Bar) -> (u64, u64) {
     }
 }
 
+
+impl Bar {
+    /// Return true iff the game is a win for the side on move.
+    fn negamax(&self) -> bool {
+        // Base case: there is just poison.
+        if self.0.len() == 1 {
+            return false;
+        }
+
+        // Recursive case: try to find a way to make
+        // opponent eat poison.
+        for &(row, col) in self.0.iter() {
+            if row == 0 && col == 0 {
+                continue;
+            }
+            let mut next = self.clone();
+            next.chomp(row, col);
+            if !next.negamax() {
+                return true;
+            }
+        }
+        false
+    }
+}
+
 fn main() {
     let mut b = Bar::new(4, 3);
+    println!("{:?}", b.negamax());
     loop {
         let moove = get_move(&b);
         if moove == (0, 0) {
