@@ -1,6 +1,13 @@
 // Copyright © 2018 Bart Massey
+// This program is licensed under the "MIT License". Please
+// see the file `LICENSE` in this distribution for license
+// terms.
 
 //! Chomp player in Rust.
+
+extern crate rand;
+
+use rand::Rng;
 
 use std::collections::HashSet;
 use std::fmt::{self, Display};
@@ -138,12 +145,32 @@ impl Bar {
         }
         None
     }
+
+    /// Get a random move. May be poison.
+    fn random_move(&self) -> (u64, u64) {
+        let mut rng = rand::thread_rng();
+        let moves: Vec<(u64, u64)> = self.0.iter().cloned().collect();
+        return *rng.choose(&moves).unwrap();
+    }
 }
 
 fn main() {
     let mut b = Bar::new(4, 3);
-    println!("{:?}", b.negamax());
     loop {
+        println!();
+        println!("{}", b);
+        let moove = match b.negamax() {
+            Some(m) => m,
+            None => b.random_move(),
+        };
+        if moove == (0, 0) {
+            println!("poisoned: game over");
+            return;
+        }
+        let (row, col) = moove;
+        println!("computer move: {} {}", row, col);
+        b.chomp(row, col);
+
         let moove = get_move(&b);
         if moove == (0, 0) {
             println!("poisoned: game over");
