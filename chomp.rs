@@ -10,8 +10,10 @@ extern crate rand;
 use rand::Rng;
 
 use std::collections::HashSet;
+use std::env;
 use std::fmt::{self, Display};
 use std::io::Write;
+use std::num;
 
 /// Structure representing a candy bar to be chomped.
 #[derive(Clone, Debug)]
@@ -171,8 +173,15 @@ impl Bar {
     }
 }
 
-fn main() {
-    let mut b = Bar::new(4, 3);
+fn main() -> Result<(), num::ParseIntError> {
+    let mut argv = env::args();
+    let _ = argv.next();
+    let (rows, cols) = match (argv.next(), argv.next()) {
+        (Some(rows), Some(cols)) =>
+            (rows.parse()?, cols.parse()?),
+        _ => (4, 3),
+    };
+    let mut b = Bar::new(rows, cols);
     loop {
         // Computer turn.
         println!();
@@ -183,7 +192,7 @@ fn main() {
         };
         if moove == (0, 0) {
             println!("poisoned: game over");
-            return;
+            break;
         }
         let (row, col) = moove;
         println!("computer move: {} {}", row, col);
@@ -193,9 +202,10 @@ fn main() {
         let moove = get_move(&b);
         if moove == (0, 0) {
             println!("poisoned: game over");
-            return;
+            break;
         }
         let (row, col) = moove;
         b.chomp(row, col);
     }
+    Ok(())
 }
