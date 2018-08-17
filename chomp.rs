@@ -96,11 +96,16 @@ impl Display for Bar {
 
 fn get_move(b: &Bar) -> (u64, u64) {
     loop {
+        // Show the current board.
         println!("{}", b);
+
+        // Prompt for and read the move.
         print!("move: ");
         std::io::stdout().flush().unwrap();
         let mut moove = String::new();
         std::io::stdin().read_line(&mut moove).unwrap();
+
+        // Parse the move.
         let fields: Vec<&str> = moove.split_whitespace().collect();
         if fields.len() != 2 {
             println!("bad move format");
@@ -118,13 +123,17 @@ fn get_move(b: &Bar) -> (u64, u64) {
             println!("illegal move");
             continue;
         }
+
+        // Got a good move.
         return (row, col);
     }
 }
 
 
 impl Bar {
-    /// Return true iff the game is a win for the side on move.
+
+    /// Return a winning move for the side on move if there
+    /// is one.
     fn negamax(&self) -> Option<(u64, u64)> {
         // Base case: there is just poison.
         if self.0.len() == 1 {
@@ -146,17 +155,26 @@ impl Bar {
         None
     }
 
-    /// Get a random move. May be poison.
+    /// Get a random non-poison move if possible, else
+    /// poison.
     fn random_move(&self) -> (u64, u64) {
         let mut rng = rand::thread_rng();
-        let moves: Vec<(u64, u64)> = self.0.iter().cloned().collect();
-        return *rng.choose(&moves).unwrap();
+        let moves: Vec<(u64, u64)> = self.0
+            .iter()
+            .cloned()
+            .filter(|(r, c)| *r != 0 || *c != 0)
+            .collect();
+        if moves.len() == 0 {
+            return (0, 0);
+        }
+        *rng.choose(&moves).unwrap()
     }
 }
 
 fn main() {
     let mut b = Bar::new(4, 3);
     loop {
+        // Computer turn.
         println!();
         println!("{}", b);
         let moove = match b.negamax() {
@@ -171,6 +189,7 @@ fn main() {
         println!("computer move: {} {}", row, col);
         b.chomp(row, col);
 
+        // Human turn.
         let moove = get_move(&b);
         if moove == (0, 0) {
             println!("poisoned: game over");
